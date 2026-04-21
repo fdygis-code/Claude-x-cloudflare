@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PROXY_TERMINAL_V1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #ff2020; --red-dim: #c0000080; --red-glow: #ff202055;
+      --bg: #0a0000; --card: #120000cc; --border: #5a000088;
+      --text: #ff6060; --mono: 'Share Tech Mono', monospace; --title: 'Orbitron', sans-serif;
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--mono); overflow: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.4; }
+    body::after { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, #0a000099 70%, #0a0000ee 100%); pointer-events: none; z-index: 0; }
+    .scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px); pointer-events: none; z-index: 1; }
+    .grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(180,0,0,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(180,0,0,0.06) 1px, transparent 1px); background-size: 40px 40px; animation: gridPulse 8s ease-in-out infinite; z-index: 0; }
+    @keyframes gridPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    .wrapper { position: relative; z-index: 10; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--red), transparent); animation: barScan 3s ease-in-out infinite; z-index: 20; }
+    @keyframes barScan { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; box-shadow: 0 0 12px var(--red); } }
+    .corner { position: fixed; width: 60px; height: 60px; z-index: 20; opacity: 0.5; }
+    .corner--tl { top: 12px; left: 12px; border-top: 1px solid var(--red); border-left: 1px solid var(--red); }
+    .corner--tr { top: 12px; right: 12px; border-top: 1px solid var(--red); border-right: 1px solid var(--red); }
+    .corner--bl { bottom: 12px; left: 12px; border-bottom: 1px solid var(--red); border-left: 1px solid var(--red); }
+    .corner--br { bottom: 12px; right: 12px; border-bottom: 1px solid var(--red); border-right: 1px solid var(--red); }
+    .status { font-size: 10px; letter-spacing: 0.2em; color: #ff202044; margin-bottom: 32px; animation: blink 2s step-end infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+    .card { background: var(--card); border: 1px solid var(--border); padding: 40px 48px 44px; width: min(580px, 90vw); position: relative; box-shadow: 0 0 40px #ff000018, 0 0 80px #ff000008, inset 0 0 30px #ff00000a; animation: cardIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .card::before { content: ''; position: absolute; top: -1px; left: -1px; width: 12px; height: 12px; border-top: 2px solid var(--red); border-left: 2px solid var(--red); }
+    .card::after { content: ''; position: absolute; bottom: -1px; right: -1px; width: 12px; height: 12px; border-bottom: 2px solid var(--red); border-right: 2px solid var(--red); }
+    .title { font-family: var(--title); font-size: clamp(16px, 3vw, 22px); font-weight: 900; letter-spacing: 0.15em; color: var(--red); text-shadow: 0 0 10px var(--red), 0 0 30px var(--red-glow), 0 0 60px var(--red-glow); text-align: center; margin-bottom: 28px; animation: titleGlow 3s ease-in-out infinite; }
+    @keyframes titleGlow { 0%, 100% { text-shadow: 0 0 10px var(--red), 0 0 30px var(--red-glow); } 50% { text-shadow: 0 0 20px var(--red), 0 0 60px var(--red-glow), 0 0 100px #ff000030; } }
+    .input-row { display: flex; gap: 10px; align-items: center; }
+    input#url { flex: 1; background: #1a000088; border: 1px solid #5a000099; color: #ff8080; font-family: var(--mono); font-size: 13px; padding: 12px 16px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; caret-color: var(--red); }
+    input#url::placeholder { color: #ff202033; }
+    input#url:focus { border-color: var(--red); box-shadow: 0 0 0 1px var(--red-glow), 0 0 16px var(--red-glow); }
+    button#go { background: var(--red); color: #000; border: none; font-family: var(--title); font-size: 11px; font-weight: 700; letter-spacing: 0.2em; padding: 12px 22px; cursor: pointer; position: relative; overflow: hidden; transition: background 0.15s, box-shadow 0.15s; }
+    button#go::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.4s; }
+    button#go:hover { background: #ff4040; box-shadow: 0 0 20px var(--red), 0 0 40px var(--red-glow); }
+    button#go:hover::before { left: 100%; }
+    button#go:active { transform: scale(0.97); }
+    .footer-line { margin-top: 24px; display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 0.2em; color: #ff202033; }
+    .cursor { display: inline-block; width: 10px; height: 1.1em; background: var(--red); margin-left: 4px; vertical-align: middle; animation: blink 1s step-end infinite; opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="grid"></div>
+  <div class="top-bar"></div>
+  <div class="corner corner--tl"></div>
+  <div class="corner corner--tr"></div>
+  <div class="corner corner--bl"></div>
+  <div class="corner corner--br"></div>
+  <div class="wrapper">
+    <div class="status">[ SYSTEM ONLINE ] // SECURE TUNNEL ACTIVE</div>
+    <div class="card">
+      <div class="title">PROXY_TERMINAL_V1<span class="cursor"></span></div>
+      <div class="input-row">
+        <input id="url" type="text" placeholder="https://..." autocomplete="off" spellcheck="false" />
+        <button id="go">EXECUTE</button>
+      </div>
+      <div class="footer-line">
+        <span>SCRAMJET // WISP</span>
+        <span id="clock"></span>
+        <span>ENCRYPTED</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="/scramjet/scramjet.bundle.js"></script>
+  <script>
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    async function registerSW() {
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        console.log('SW registered!');
+
+        // Set up Scramjet controller
+        const controller = new scramjet.ScramjetController({
+          prefix: '/scram/',
+          codec: scramjet.codecs.plain,
+          wispServer: 'wss://wisp.mercurywork.shop/',
+          files: {
+            wasm: '/scramjet/scramjet.wasm',
+            worker: '/scramjet/scramjet.worker.js',
+            client: '/scramjet/scramjet.client.js',
+            codecs: '/scramjet/scramjet.codecs.js',
+          }
+        });
+
+        await controller.init(reg);
+        console.log('Scramjet ready!');
+
+        document.getElementById('go').onclick = () => {
+          let url = document.getElementById('url').value.trim();
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+          }
+          location.href = controller.encodeUrl(url);
+        };
+
+        document.getElementById('url').addEventListener('keydown', e => {
+          if (e.key === 'Enter') document.getElementById('go').click();
+        });
+
+      } catch (err) {
+        console.error('SW failed:', err);
+      }
+    }
+    registerSW();
+  </script>
+</body>
+</html>
