@@ -3,19 +3,9 @@ self.addEventListener('activate', () => self.clients.claim());
 
 importScripts('/scramjet/scramjet.bundle.js');
 
-let sw;
+// Log everything scramjet exposes in SW context
+const keys = Object.keys(self).filter(k => k.toLowerCase().includes('scramjet'));
+console.log('Scramjet keys in SW:', keys);
+keys.forEach(k => console.log(k, typeof self[k]));
 
-if (typeof ScramjetServiceWorker !== 'undefined') {
-    sw = new ScramjetServiceWorker();
-} else if (typeof __scramjet$bundle !== 'undefined') {
-    sw = new __scramjet$bundle.ScramjetServiceWorker();
-} else {
-    const key = Object.keys(self).find(k => k.includes('scramjet'));
-    if (key) sw = new self[key].ScramjetServiceWorker();
-}
-
-self.addEventListener('fetch', event => {
-    if (sw && sw.route(event)) {
-        event.respondWith(sw.fetch(event));
-    }
-});
+self.addEventListener('fetch', event => {});
